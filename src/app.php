@@ -5,13 +5,21 @@ Entry point of the project.
 To be run from the command line.
 ************************************/
 
-include_once(__DIR__ . '/utils.php');
-include_once(__DIR__ . '/config.php');
-include_once(__DIR__ . '/DatabaseConnection.php');
-include_once(__DIR__ . '/JobRepository.php');
+use JobMangement\Database\DatabaseConnection;
+use JobMangement\Database\JobRepository;
+use JobMangement\Lists\JobsLister;
 
+include_once(__DIR__ . '/utils/utils.php');
+include_once(__DIR__ . '/config/config.php');
+include_once(__DIR__ . '/database/DatabaseConnection.php');
+include_once(__DIR__ . '/database/JobRepository.php');
+include_once(__DIR__ . '/lists/JobsLister.php');
 
-printMessage("Starting...");
+include_once(__DIR__ . '/importers/FileImporter.php');
+include_once(__DIR__ . '/importers/ImportJobteaser/ImportJobteaser.php');
+include_once(__DIR__ . '/importers/ImportRegionsJob/ImportRegionsJob.php');
+
+printStartingMessage();
 
 /* database connection */
 $dbConnection = new DatabaseConnection(SQL_HOST, SQL_USER, SQL_PWD, SQL_DB);
@@ -23,21 +31,11 @@ $jobsImporter = new JobsImporter($jobRepository, getFilesFilterByExtensions(RESS
 
 $count = $jobsImporter->importJobs();
 
-printMessage("> {count} jobs imported.", ['{count}' => $count]);
+printImportedJobCount($count);
 
+/* get list jobs */
+$jobs = (new JobsLister($jobRepository))->listJobs();
 
-/* list jobs */
-$jobsLister = new JobsLister($jobRepository);
-$jobs = $jobsLister->listJobs();
+printJobsInfo($jobs);
 
-
-printMessage("> all jobs ({count}):", ['{count}' => count($jobs)]);
-foreach ($jobs as $job) {
-    printMessage(" {id}: {reference} - {title} - {publication}", [
-    	'{id}' => $job['id'],
-    	'{reference}' => $job['reference'],
-    	'{title}' => $job['title'],
-    	'{publication}' => $job['publication']
-    ]);
-}
-printMessage("Terminating...");
+printTerminatingMessage();

@@ -1,10 +1,14 @@
 <?php
 
+namespace JobMangement\Lists;
+
+use JobMangement\Database\JobRepository;
+
 class JobsLister
 {
     protected JobRepository $jobRepository;
 
-    public function __construct($jobRepository)
+    public function __construct(JobRepository $jobRepository)
     {
         $this->jobRepository = $jobRepository;
     }

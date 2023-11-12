@@ -1,5 +1,9 @@
 <?php
 
+namespace JobMangement\Importers\ImportRegionsJob;
+
+use JobMangement\Importers\FileImporter;
+
 class ImportRegionsJob extends FileImporter {
     /**
      * Import job data from an XML file in the RegionsJob format.

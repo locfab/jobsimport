@@ -1,5 +1,8 @@
 <?php
 
+namespace JobMangement\Importers\ImportJobteaser;
+
+use JobMangement\Importers\FileImporter;
 
 class ImportJobteaser extends FileImporter {
     /**

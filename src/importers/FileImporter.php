@@ -1,4 +1,9 @@
 <?php
+
+namespace JobMangement\Importers;
+
+use JobMangement\Database\JobRepository;
+
 abstract class FileImporter {
 
     protected JobRepository $jobRepository;

@@ -1,5 +1,11 @@
 <?php
+
+namespace JobMangement\Database;
+
+use PDO;
+
 class JobRepository {
+
     private DatabaseConnectionInterface $db;
 
     public function __construct(DatabaseConnectionInterface $db) {
@@ -35,5 +41,21 @@ class JobRepository {
     public function deleteAllJobData(): void
     {
         $this->db->getConnection()->exec('DELETE FROM job');
+    }
+    public function selectJobIds(): array
+    {
+        $jobIds = $this->db->getConnection()->query('SELECT id FROM job')->fetchAll(PDO::FETCH_COLUMN);
+
+        return $jobIds;
+    }
+    public function deleteJobsByIds(array $jobIds): void
+    {
+        if (empty($jobIds)) {
+            return;
+        }
+
+        $jobIds = implode(',', $jobIds);
+
+        $this->db->getConnection()->query("DELETE FROM job WHERE id IN ($jobIds)");
     }
 }

@@ -1,5 +1,9 @@
 <?php
 
+use JobMangement\Database\JobRepository;
+use JobMangement\Importers\ImportJobteaser\ImportJobteaser;
+use JobMangement\Importers\ImportRegionsJob\ImportRegionsJob;
+
 class JobsImporter
 {
     private array $files;
@@ -17,8 +21,8 @@ class JobsImporter
          * Defines a class property $fileRules, which is an associative array.
          *
          * This property is used to establish rules that map file names to data import methods.
-         * For example, the rule "*jobteaser*.json" => "ImportJobteaser::class" signifies that if a file name matches
-         * the pattern "*jobteaser*.json", the ImportJobteaser class should be used to import data from that file.
+         * For example, the rule "*jobteaser*.json" => "importJobteaser::class" signifies that if a file name matches
+         * the pattern "*jobteaser*.json", the importJobteaser class should be used to import data from that file.
          * This pattern matches files whose names start with any sequence of characters (* means any sequence)
          * followed by "jobteaser" and ending with ".json."
          *
@@ -69,18 +73,21 @@ class JobsImporter
 
     public function importJobs(): int
     {
-        /* remove existing items */
-        $this->jobRepository->deleteAllJobData();
-
+        $ids = $this->jobRepository->selectJobIds();
         $count = 0;
 
         foreach ($this->files as $file) {
-            $importClass = $this->getImportClass($file); // This function maps the file-specific import the name of the class to the given file.
+            $importClass = $this->getImportClass($file); // This function maps the file import class name to the given file.
             if ($importClass) {
-                $importer = new $importClass($this->jobRepository);
+                $importer = new $importClass($this->jobRepository); // Classes are in src/importers.
                 $result = $importer->import($file);
                 $count += $result !== null ? $result : 0;
             }
+        }
+
+        // After successfully importing all new data, we might consider deleting the old data.
+        if ($count > 0) {
+            $this->jobRepository->deleteJobsByIds($ids);
         }
 
         return $count;

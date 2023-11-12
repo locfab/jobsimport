@@ -1,5 +1,10 @@
 <?php
 
+namespace JobMangement\Database;
+
+use Exception;
+use PDO;
+
 interface DatabaseConnectionInterface
 {
     public function getConnection(): PDO;
