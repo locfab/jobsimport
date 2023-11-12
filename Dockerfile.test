@@ -1,0 +1,10 @@
+# Utilisez la même image que votre application
+FROM php:7.4-apache
+
+# Installation de PHPUnit
+RUN apt-get update && apt-get install -y wget \
+    && wget https://phar.phpunit.de/phpunit-9.6.phar -O /usr/local/bin/phpunit \
+    && chmod +x /usr/local/bin/phpunit
+
+# Définir le répertoire de travail
+WORKDIR /var/www/html

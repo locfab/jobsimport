@@ -28,3 +28,15 @@ services:
       - PMA_HOST=mariadb
     depends_on:
       - mariadb
+
+  tests:
+    build:
+      context: ./
+      dockerfile: Dockerfile.test
+    volumes:
+      - ./src/:/var/app/src
+      - ./resources/:/var/app/resources
+      - ./tests/:/var/app/tests
+    depends_on:
+      - app
+    command: phpunit

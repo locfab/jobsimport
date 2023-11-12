@@ -1,0 +1,13 @@
+{
+  "offerUrlPrefix": "http://www.jobteaser.com",
+  "offers": [
+    {
+      "urlPath": "/candidat/offres/offre-d-emploi-ingenieur-informatique-h-f-paris-ile-de-france-edition-cdi-1234567",
+      "title": "Software Engineer (H/F)",
+      "description": "We are looking for a highly skilled Software Engineer to join our dynamic team. The ideal candidate should have a strong background in software development and be passionate about creating high-quality software products.",
+      "reference": "IT7890",
+      "publishedDate": "Tue Jan 15 12:30:45 CET 2023",
+      "companyname": "TechCo"
+    }
+  ]
+}
