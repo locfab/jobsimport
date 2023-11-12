@@ -2,7 +2,7 @@
 
 echo "CREATING CONTAINERS..."
 echo "---------"
-docker-compose up -d --force-recreate --remove-orphan
+docker-compose up -d --force-recreate --remove-orphans
 echo
 
 echo "ENSURING SERVICES HAVE TIME TO START..."

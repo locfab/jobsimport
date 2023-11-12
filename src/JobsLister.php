@@ -2,22 +2,15 @@
 
 class JobsLister
 {
-    private PDO $db;
+    protected JobRepository $jobRepository;
 
-    public function __construct(string $host, string $username, string $password, string $databaseName)
+    public function __construct($jobRepository)
     {
-        /* connect to DB */
-        try {
-            $this->db = new PDO('mysql:host=' . $host . ';dbname=' . $databaseName, $username, $password);
-        } catch (Exception $e) {
-            die('DB error: ' . $e->getMessage() . "\n");
-        }
+        $this->jobRepository = $jobRepository;
     }
 
     public function listJobs(): array
     {
-        $jobs = $this->db->query('SELECT id, reference, title, description, url, company_name, publication FROM job')->fetchAll(PDO::FETCH_ASSOC);
-
-        return $jobs;
+        return $this->jobRepository->selectJobData();
     }
 }

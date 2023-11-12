@@ -2,43 +2,87 @@
 
 class JobsImporter
 {
-    private PDO $db;
+    private array $files;
 
-    private string $file;
+    private array $fileRules;
 
-    public function __construct(string $host, string $username, string $password, string $databaseName, string $file)
+    protected JobRepository $jobRepository;
+
+    public function __construct(JobRepository $jobRepository, array $files)
     {
-        $this->file = $file;
-        
-        /* connect to DB */
-        try {
-            $this->db = new PDO('mysql:host=' . $host . ';dbname=' . $databaseName, $username, $password);
-        } catch (Exception $e) {
-            die('DB error: ' . $e->getMessage() . "\n");
+        $this->files = $files;
+        $this->jobRepository = $jobRepository;
+
+        /**
+         * Defines a class property $fileRules, which is an associative array.
+         *
+         * This property is used to establish rules that map file names to data import methods.
+         * For example, the rule "*jobteaser*.json" => "ImportJobteaser::class" signifies that if a file name matches
+         * the pattern "*jobteaser*.json", the ImportJobteaser class should be used to import data from that file.
+         * This pattern matches files whose names start with any sequence of characters (* means any sequence)
+         * followed by "jobteaser" and ending with ".json."
+         *
+         * In summary, $this->fileRules is a mechanism for associating files with data import classes
+         * based on their names and locations. This enables dynamic management of data imports from various file types
+         * using the appropriate classes.
+         *
+         * Additionally, if a new company arrives, you can simply add it to the $fileRules array
+         * and create the corresponding import class. This ensures that the system can adapt to new data sources
+         * without requiring extensive code changes, enhancing flexibility and scalability.
+         *
+         * Note: Files that don't match any of the defined fileRules will not be considered for processing.
+         */
+
+
+        $this->fileRules = [
+            '*/jobteaser*.json' => ImportJobteaser::class,
+            '*/regionsjob*.xml' => ImportRegionsJob::class,
+            // Add other rules here
+        ];
+    }
+
+    /**
+     * Getter for the fileRules property.
+     *
+     * @return array The array of file rules used for data import.
+     */
+    private function getRules(): array {
+        return $this->fileRules;
+    }
+
+
+    /**
+     * Retrieve the class name associated with the given file.
+     *
+     * @param string $filename The name of the file to search for an associated class.
+     * @return string|null The corresponding class name if found, or null if no matching rule is found.
+     */
+
+    private function getImportClass(string $filename): ?string {
+        foreach ($this->getRules() as $pattern => $importClass) {
+            if (fnmatch($pattern, $filename)) {
+                return $importClass;
+            }
         }
+        return null; // if no rule matches
     }
 
     public function importJobs(): int
     {
         /* remove existing items */
-        $this->db->exec('DELETE FROM job');
+        $this->jobRepository->deleteAllJobData();
 
-        /* parse XML file */
-        $xml = simplexml_load_file($this->file);
-
-        /* import each item */
         $count = 0;
-        foreach ($xml->item as $item) {
-            $this->db->exec('INSERT INTO job (reference, title, description, url, company_name, publication) VALUES ('
-                . '\'' . addslashes($item->ref) . '\', '
-                . '\'' . addslashes($item->title) . '\', '
-                . '\'' . addslashes($item->description) . '\', '
-                . '\'' . addslashes($item->url) . '\', '
-                . '\'' . addslashes($item->company) . '\', '
-                . '\'' . addslashes($item->pubDate) . '\')'
-            );
-            $count++;
+
+        foreach ($this->files as $file) {
+            $importClass = $this->getImportClass($file); // This function maps the file-specific import the name of the class to the given file.
+            if ($importClass) {
+                $importer = new $importClass($this->jobRepository);
+                $result = $importer->import($file);
+                $count += $result !== null ? $result : 0;
+            }
         }
+
         return $count;
     }
 }
