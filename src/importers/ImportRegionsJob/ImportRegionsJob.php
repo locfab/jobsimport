@@ -2,9 +2,18 @@
 
 namespace JobMangement\Importers\ImportRegionsJob;
 
+use JobMangement\Database\JobRepository;
+use JobMangement\Entity\Job;
 use JobMangement\Importers\FileImporter;
 
-class ImportRegionsJob extends FileImporter {
+
+class ImportRegionsJob implements FileImporter {
+
+    protected JobRepository $jobRepository;
+
+    public function __construct(JobRepository $jobRepository){
+        $this->jobRepository = $jobRepository;
+    }
     /**
      * Import job data from an XML file in the RegionsJob format.
      *
@@ -20,9 +29,18 @@ class ImportRegionsJob extends FileImporter {
         $count = 0;
 
         foreach ($xml->item as $item) {
-            $this->jobRepository->insertJobData($item->ref, $item->title, $item->description, $item->url, $item->company, $item->pubDate);
-            $count++;
+            $newJob = new Job($item->ref, $item->title, $item->description, $item->url, $item->company, $item->pubDate);
+            $jobData = $this->jobRepository->selectJobByRef($item->ref);
+            if (count($jobData) === 0) {
+                $this->jobRepository->insertJobData($newJob);
+                $count++;
+            }
         }
         return $count;
+    }
+
+    public static function getRule(): string
+    {
+        return RULE_REGIONSJOB;
     }
 }

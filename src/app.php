@@ -19,6 +19,8 @@ include_once(__DIR__ . '/importers/FileImporter.php');
 include_once(__DIR__ . '/importers/ImportJobteaser/ImportJobteaser.php');
 include_once(__DIR__ . '/importers/ImportRegionsJob/ImportRegionsJob.php');
 
+include_once(__DIR__ . '/entity/Job.php');
+
 printStartingMessage();
 
 /* database connection */
@@ -37,5 +39,7 @@ printImportedJobCount($count);
 $jobs = (new JobsLister($jobRepository))->listJobs();
 
 printJobsInfo($jobs);
+
+printImportedJobCount($count);
 
 printTerminatingMessage();

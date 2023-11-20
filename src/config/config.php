@@ -6,3 +6,6 @@ define('SQL_PWD', 'root');
 define('SQL_DB', 'cmc_db');
 
 define('RESSOURCES_DIR', __DIR__ . '/../../resources');
+
+define('RULE_JOBTEASER', '*/jobteaser*.json');
+define('RULE_REGIONSJOB', '*/regionsjob*.xml');

@@ -2,6 +2,7 @@
 
 namespace JobMangement\Database;
 
+use JobMangement\Entity\Job;
 use PDO;
 
 class JobRepository {
@@ -12,24 +13,36 @@ class JobRepository {
         $this->db = $db;
     }
 
-    public function insertJobData(string $reference, string $title, string $description, string $url, string $company, string $pubDate) {
+    public function insertJobData(Job $job) {
         $query = "INSERT INTO job (reference, title, description, url, company_name, publication) VALUES (?, ?, ?, ?, ?, ?)";
 
         $stmt = $this->db->getConnection()->prepare($query);
 
         if ($stmt) {
-            $stmt->bindParam(1, $reference, PDO::PARAM_STR);
-            $stmt->bindParam(2, $title, PDO::PARAM_STR);
-            $stmt->bindParam(3, $description, PDO::PARAM_STR);
-            $stmt->bindParam(4, $url, PDO::PARAM_STR);
-            $stmt->bindParam(5, $company, PDO::PARAM_STR);
-            $stmt->bindParam(6, $pubDate, PDO::PARAM_STR);
+            $stmt->bindParam(1, $job->ref, PDO::PARAM_STR);
+            $stmt->bindParam(2, $job->title, PDO::PARAM_STR);
+            $stmt->bindParam(3, $job->description, PDO::PARAM_STR);
+            $stmt->bindParam(4, $job->url, PDO::PARAM_STR);
+            $stmt->bindParam(5, $job->company, PDO::PARAM_STR);
+            $stmt->bindParam(6, $job->pubDate, PDO::PARAM_STR);
 
             $stmt->execute();
             $stmt->closeCursor();
         } else {
             die('DB error: Unable to prepare the SQL statement.' . "\n");
         }
+    }
+
+    public function selectJobByRef($jobRef): array
+    {
+        $query = 'SELECT id, reference, title, description, url, company_name, publication FROM job WHERE reference = :reference';
+        $statement = $this->db->getConnection()->prepare($query);
+        $statement->bindParam(':reference', $jobRef);
+        $statement->execute();
+
+        $job = $statement->fetch(PDO::FETCH_ASSOC);
+
+        return $job ?: [];
     }
 
     public function selectJobData(): array

@@ -8,7 +8,7 @@ class JobsImporter
 {
     private array $files;
 
-    private array $fileRules;
+    private array $classes;
 
     protected JobRepository $jobRepository;
 
@@ -17,41 +17,10 @@ class JobsImporter
         $this->files = $files;
         $this->jobRepository = $jobRepository;
 
-        /**
-         * Defines a class property $fileRules, which is an associative array.
-         *
-         * This property is used to establish rules that map file names to data import methods.
-         * For example, the rule "*jobteaser*.json" => "importJobteaser::class" signifies that if a file name matches
-         * the pattern "*jobteaser*.json", the importJobteaser class should be used to import data from that file.
-         * This pattern matches files whose names start with any sequence of characters (* means any sequence)
-         * followed by "jobteaser" and ending with ".json."
-         *
-         * In summary, $this->fileRules is a mechanism for associating files with data import classes
-         * based on their names and locations. This enables dynamic management of data imports from various file types
-         * using the appropriate classes.
-         *
-         * Additionally, if a new company arrives, you can simply add it to the $fileRules array
-         * and create the corresponding import class. This ensures that the system can adapt to new data sources
-         * without requiring extensive code changes, enhancing flexibility and scalability.
-         *
-         * Note: Files that don't match any of the defined fileRules will not be considered for processing.
-         */
-
-
-        $this->fileRules = [
-            '*/jobteaser*.json' => ImportJobteaser::class,
-            '*/regionsjob*.xml' => ImportRegionsJob::class,
-            // Add other rules here
+        $this->classes = [
+            ImportJobteaser::class,
+            ImportRegionsJob::class,
         ];
-    }
-
-    /**
-     * Getter for the fileRules property.
-     *
-     * @return array The array of file rules used for data import.
-     */
-    private function getRules(): array {
-        return $this->fileRules;
     }
 
 
@@ -61,10 +30,9 @@ class JobsImporter
      * @param string $filename The name of the file to search for an associated class.
      * @return string|null The corresponding class name if found, or null if no matching rule is found.
      */
-
     private function getImportClass(string $filename): ?string {
-        foreach ($this->getRules() as $pattern => $importClass) {
-            if (fnmatch($pattern, $filename)) {
+        foreach ($this->classes as $importClass) {
+            if (fnmatch(call_user_func([$importClass, 'getRule']), $filename)) {
                 return $importClass;
             }
         }
@@ -73,7 +41,6 @@ class JobsImporter
 
     public function importJobs(): int
     {
-        $ids = $this->jobRepository->selectJobIds();
         $count = 0;
 
         foreach ($this->files as $file) {
@@ -84,12 +51,6 @@ class JobsImporter
                 $count += $result !== null ? $result : 0;
             }
         }
-
-        // After successfully importing all new data, we might consider deleting the old data.
-        if ($count > 0) {
-            $this->jobRepository->deleteJobsByIds($ids);
-        }
-
         return $count;
     }
 }
